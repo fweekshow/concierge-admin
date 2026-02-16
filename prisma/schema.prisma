@@ -6,6 +6,64 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id             String   @id @default(cuid())
+  walletAddress  String   @unique
+  conversationId String
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @updatedAt
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  meds             UserMeds?
+  assignedClients  UserAssignedClient[] @relation("Advocate")
+  assignedAdvocate UserAssignedClient[] @relation("Client")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([conversationId])
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  users User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserMeds {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  schedule Json @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserAssignedClient {
+  id             String @id @default(cuid())
+  advocateUserId String
+  clientUserId   String
+
+  advocate User @relation("Advocate", fields: [advocateUserId], references: [id], onDelete: Cascade)
+  client   User @relation("Client", fields: [clientUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([advocateUserId, clientUserId])
+  @@index([advocateUserId])
+  @@index([clientUserId])
+}
+
 model MealTemplate {
   id         String    @id @default(cuid())
   date       DateTime?
