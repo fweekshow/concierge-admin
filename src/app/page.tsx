@@ -16,6 +16,8 @@ interface ActionConfig {
   templateFormat: string | null;
   createdAt: string;
   updatedAt: string;
+  count?: number;
+  hasData?: boolean;
 }
 
 export default function Dashboard() {
@@ -36,10 +38,24 @@ export default function Dashboard() {
 
   const fetchActions = async () => {
     try {
-      const res = await fetch("/api/actions");
+      const res = await fetch("/api/quick-actions");
       if (!res.ok) throw new Error("Failed to fetch actions");
       const data = await res.json();
-      setActions(data);
+      // Transform to match existing interface
+      setActions(data.map((action: any) => ({
+        id: action.actionId,
+        actionId: action.actionId,
+        label: action.label,
+        enabled: true,
+        responseType: "database",
+        staticText: null,
+        dataSource: action.table.toLowerCase().replace("template", ""),
+        templateFormat: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        count: action.count,
+        hasData: action.hasData,
+      })));
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -174,11 +190,15 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                <div className={styles.cardActions}>
-                  <Link href={`/actions/${action.actionId}`} className="btn btn-secondary">
-                    Edit Response
-                  </Link>
+              <div className={styles.cardActions}>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Entries</span>
+                  <span className={styles.metaValue}>{action.count ?? 0}</span>
                 </div>
+                <Link href={`/actions/${action.actionId}`} className="btn btn-secondary">
+                  Edit {action.label.replace(/[^\w\s]/g, "").trim()}
+                </Link>
+              </div>
               </div>
             ))}
           </div>

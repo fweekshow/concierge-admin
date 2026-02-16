@@ -6,7 +6,6 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
-COPY prisma.config.ts ./
 
 # Install dependencies
 RUN npm ci
@@ -34,8 +33,8 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 
-CMD ["sh", "-lc", "cd /app/.next/standalone && node server.js"]
+# Railway sets PORT dynamically - pass it explicitly to Next.js
+CMD ["sh", "-c", "cd /app/.next/standalone && PORT=${PORT:-3000} node server.js"]

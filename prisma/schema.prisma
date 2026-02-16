@@ -6,20 +6,63 @@ datasource db {
   provider = "postgresql"
 }
 
-model ActionConfig {
-  id       String  @id @default(cuid())
-  actionId String  @unique
-  label    String
-  enabled  Boolean @default(true)
+model MealTemplate {
+  id         String    @id @default(cuid())
+  date       DateTime?
+  mealType   String
+  items      Json
+  notes      String?
+  daysOfWeek String[]  @default([])
 
-  responseType   String
-  staticText     String?
-  dataSource     String?
-  templateFormat String?
+  startTime  String?
+  endTime    String?
+  timezone   String   @default("America/Los_Angeles")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([actionId])
+  @@index([date])
+  @@index([daysOfWeek])
+}
+
+model ActivityTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  startTime   String
+  endTime     String
+  location    String?
+  daysOfWeek  String[] @default([])
+  timezone    String   @default("America/Los_Angeles")
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([daysOfWeek])
+}
+
+model Guideline {
+  id       String  @id @default(cuid())
+  title    String
+  content  String
+  category String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model HouseRule {
+  id       String  @id @default(cuid())
+  title    String
+  content  String
+  category String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
 }
 
