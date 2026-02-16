@@ -42,7 +42,10 @@ export default function ActionEditor() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const isNew = actionId === "new";
+  
   // Form state
+  const [newActionId, setNewActionId] = useState("");
   const [label, setLabel] = useState("");
   const [enabled, setEnabled] = useState(true);
   const [responseType, setResponseType] = useState("static");
@@ -51,7 +54,11 @@ export default function ActionEditor() {
   const [templateFormat, setTemplateFormat] = useState("");
 
   useEffect(() => {
-    fetchAction();
+    if (isNew) {
+      setLoading(false);
+    } else {
+      fetchAction();
+    }
   }, [actionId]);
 
   const fetchAction = async () => {
@@ -76,28 +83,56 @@ export default function ActionEditor() {
   };
 
   const handleSave = async () => {
+    if (isNew && !newActionId.trim()) {
+      setError("Action ID is required");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const res = await fetch(`/api/actions/${actionId}`, {
-        method: "PUT",
+      const url = isNew ? "/api/actions" : `/api/actions/${actionId}`;
+      const method = isNew ? "POST" : "PUT";
+      const body = isNew
+        ? {
+            actionId: newActionId.trim(),
+            label,
+            enabled,
+            responseType,
+            staticText: responseType === "static" || responseType === "template" ? staticText : null,
+            dataSource: responseType === "database" || responseType === "template" ? dataSource : null,
+            templateFormat: responseType === "template" ? templateFormat : null,
+          }
+        : {
+            label,
+            enabled,
+            responseType,
+            staticText: responseType === "static" || responseType === "template" ? staticText : null,
+            dataSource: responseType === "database" || responseType === "template" ? dataSource : null,
+            templateFormat: responseType === "template" ? templateFormat : null,
+          };
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label,
-          enabled,
-          responseType,
-          staticText: responseType === "static" || responseType === "template" ? staticText : null,
-          dataSource: responseType === "database" || responseType === "template" ? dataSource : null,
-          templateFormat: responseType === "template" ? templateFormat : null,
-        }),
+        body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Failed to save action");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to save action");
+      }
       
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(() => {
+        if (isNew) {
+          router.push("/");
+        } else {
+          setSuccess(false);
+        }
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -113,7 +148,7 @@ export default function ActionEditor() {
     );
   }
 
-  if (!action) {
+  if (!isNew && !action) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>Action not found</div>
@@ -131,8 +166,8 @@ export default function ActionEditor() {
           ← Back to Dashboard
         </Link>
         <div className={styles.headerContent}>
-          <h1>{label}</h1>
-          <code className={styles.actionId}>{actionId}</code>
+          <h1>{isNew ? "Create New Action" : label}</h1>
+          <code className={styles.actionId}>{isNew ? "new" : actionId}</code>
         </div>
       </header>
 
@@ -154,6 +189,23 @@ export default function ActionEditor() {
           {/* Basic Settings */}
           <section className={styles.section}>
             <h2>Basic Settings</h2>
+            
+            {isNew && (
+              <div className={styles.field}>
+                <label htmlFor="actionId">Action ID</label>
+                <input
+                  id="actionId"
+                  type="text"
+                  value={newActionId}
+                  onChange={(e) => setNewActionId(e.target.value)}
+                  placeholder="e.g., schedule, meals, activities"
+                  required
+                />
+                <p className={styles.hint}>
+                  Unique identifier for this action (lowercase, no spaces)
+                </p>
+              </div>
+            )}
             
             <div className={styles.field}>
               <label htmlFor="label">Button Label</label>
@@ -274,9 +326,9 @@ export default function ActionEditor() {
               type="button"
               className="btn btn-primary"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || (isNew && !newActionId.trim())}
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? (isNew ? "Creating..." : "Saving...") : (isNew ? "Create Action" : "Save Changes")}
             </button>
           </div>
         </div>

@@ -120,56 +120,69 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className={styles.grid}>
-          {actions.map((action) => (
-            <div key={action.id} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>
-                  <span className={styles.actionLabel}>{action.label}</span>
-                  <code className={styles.actionId}>{action.actionId}</code>
+        {actions.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateContent}>
+              <span className={styles.emptyStateIcon}>📋</span>
+              <h2>No actions configured</h2>
+              <p>Get started by creating your first quick action response.</p>
+              <Link href="/actions/new" className="btn btn-primary">
+                Create Action
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.grid}>
+            {actions.map((action) => (
+              <div key={action.id} className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>
+                    <span className={styles.actionLabel}>{action.label}</span>
+                    <code className={styles.actionId}>{action.actionId}</code>
+                  </div>
+                  <button
+                    className={`toggle ${action.enabled ? "active" : ""}`}
+                    onClick={() => toggleAction(action.actionId, !action.enabled)}
+                    title={action.enabled ? "Disable action" : "Enable action"}
+                  />
                 </div>
-                <button
-                  className={`toggle ${action.enabled ? "active" : ""}`}
-                  onClick={() => toggleAction(action.actionId, !action.enabled)}
-                  title={action.enabled ? "Disable action" : "Enable action"}
-                />
-              </div>
 
-              <div className={styles.cardMeta}>
-                <div className={styles.metaItem}>
-                  <span className={styles.metaLabel}>Type</span>
-                  <span className={`badge ${action.responseType === "database" ? "badge-success" : "badge-warning"}`}>
-                    {getResponseTypeLabel(action.responseType)}
-                  </span>
-                </div>
-                {action.dataSource && (
+                <div className={styles.cardMeta}>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Source</span>
-                    <span className={styles.metaValue}>
-                      {getDataSourceLabel(action.dataSource)}
+                    <span className={styles.metaLabel}>Type</span>
+                    <span className={`badge ${action.responseType === "database" ? "badge-success" : "badge-warning"}`}>
+                      {getResponseTypeLabel(action.responseType)}
                     </span>
                   </div>
-                )}
-              </div>
-
-              {action.responseType === "static" && action.staticText && (
-                <div className={styles.preview}>
-                  <span className={styles.previewLabel}>Preview</span>
-                  <div className={styles.previewContent}>
-                    {action.staticText.substring(0, 100)}
-                    {action.staticText.length > 100 && "..."}
-                  </div>
+                  {action.dataSource && (
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Source</span>
+                      <span className={styles.metaValue}>
+                        {getDataSourceLabel(action.dataSource)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
 
-              <div className={styles.cardActions}>
-                <Link href={`/actions/${action.actionId}`} className="btn btn-secondary">
-                  Edit Response
-                </Link>
+                {action.responseType === "static" && action.staticText && (
+                  <div className={styles.preview}>
+                    <span className={styles.previewLabel}>Preview</span>
+                    <div className={styles.previewContent}>
+                      {action.staticText.substring(0, 100)}
+                      {action.staticText.length > 100 && "..."}
+                    </div>
+                  </div>
+                )}
+
+                <div className={styles.cardActions}>
+                  <Link href={`/actions/${action.actionId}`} className="btn btn-secondary">
+                    Edit Response
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

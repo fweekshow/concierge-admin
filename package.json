@@ -6,11 +6,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -H 0.0.0.0",
     "build": "npx prisma generate && next build",
-    "start": "NODE_ENV=production node .next/standalone/server.js",
+    "start": "next start -H 0.0.0.0",
     "lint": "next lint",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "seed": "tsx scripts/seed-actions.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
@@ -25,6 +26,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "prisma": "^7.2.0",
+    "tsx": "^4.7.0",
     "typescript": "^5"
   }
 }

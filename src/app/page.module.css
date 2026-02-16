@@ -192,6 +192,38 @@
   gap: 12px;
 }
 
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 48px 24px;
+}
+
+.emptyStateContent {
+  text-align: center;
+  max-width: 400px;
+}
+
+.emptyStateIcon {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 24px;
+}
+
+.emptyStateContent h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.emptyStateContent p {
+  color: var(--text-secondary);
+  font-size: 16px;
+  margin-bottom: 32px;
+}
+
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
