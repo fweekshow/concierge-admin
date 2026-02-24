@@ -14,6 +14,7 @@ interface Stats {
   users: number;
   housekeeping: number;
   laundry: number;
+  medications: number;
 }
 
 export default function DashboardOverview() {
@@ -43,13 +44,19 @@ export default function DashboardOverview() {
     { label: "Users", count: stats?.users ?? 0, icon: "🔑", href: "/dashboard/users" },
     { label: "Housekeeping", count: stats?.housekeeping ?? 0, icon: "🧹", href: "/dashboard/housekeeping" },
     { label: "Laundry", count: stats?.laundry ?? 0, icon: "👕", href: "/dashboard/laundry" },
+    { label: "Medications", count: stats?.medications ?? 0, icon: "💊", href: "/dashboard/medications" },
   ];
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Dashboard</h1>
-        <p className={styles.subtitle}>Overview of all data in the system</p>
+        <div>
+          <h1>Dashboard</h1>
+          <p className={styles.subtitle}>Overview of all data in the system</p>
+        </div>
+        <a href="/dashboard/csv-upload" className={styles.uploadBtn}>
+          📤 CSV Upload
+        </a>
       </div>
       <div className={styles.grid}>
         {cards.map((card) => (

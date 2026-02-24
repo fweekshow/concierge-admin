@@ -12,13 +12,38 @@
 }
 
 .header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .header h1 {
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 6px;
+}
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.uploadBtn:hover {
+  opacity: 0.9;
 }
 
 .subtitle {

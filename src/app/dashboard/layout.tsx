@@ -4,20 +4,46 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./layout.module.css";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: "📊" },
-  { href: "/dashboard/meals", label: "Meals", icon: "🍴" },
-  { href: "/dashboard/activities", label: "Activities", icon: "🏃" },
-  { href: "/dashboard/schedule", label: "Daily Schedule", icon: "📅" },
-  { href: "/dashboard/staff", label: "Staff", icon: "👥" },
-  { href: "/dashboard/guidelines", label: "Guidelines", icon: "📖" },
-  { href: "/dashboard/houserules", label: "House Rules", icon: "🏠" },
-  { href: "/dashboard/emergency", label: "Emergency Contacts", icon: "🚨" },
-  { href: "/dashboard/housekeeping", label: "Housekeeping", icon: "🧹" },
-  { href: "/dashboard/laundry", label: "Laundry", icon: "👕" },
-  { href: "/dashboard/users", label: "Users & Roles", icon: "🔑" },
-  { href: "/dashboard/assignments", label: "Assignments", icon: "🔗" },
-  { href: "/dashboard/overrides", label: "Action Overrides", icon: "⚙️" },
+const NAV_GROUPS = [
+  {
+    label: "Daily Operations",
+    items: [
+      { href: "/dashboard/meals", label: "Meals", icon: "🍴" },
+      { href: "/dashboard/activities", label: "Activities", icon: "🏃" },
+      { href: "/dashboard/schedule", label: "Daily Schedule", icon: "📅" },
+    ],
+  },
+  {
+    label: "Facility",
+    items: [
+      { href: "/dashboard/housekeeping", label: "Housekeeping", icon: "🧹" },
+      { href: "/dashboard/laundry", label: "Laundry", icon: "👕" },
+    ],
+  },
+  {
+    label: "Policies & Safety",
+    items: [
+      { href: "/dashboard/guidelines", label: "Guidelines", icon: "📖" },
+      { href: "/dashboard/houserules", label: "House Rules", icon: "🏠" },
+      { href: "/dashboard/emergency", label: "Emergency", icon: "🚨" },
+    ],
+  },
+  {
+    label: "People",
+    items: [
+      { href: "/dashboard/staff", label: "Staff", icon: "👥" },
+      { href: "/dashboard/users", label: "Users & Roles", icon: "🔑" },
+      { href: "/dashboard/medications", label: "Medications", icon: "💊" },
+      { href: "/dashboard/assignments", label: "Assignments", icon: "🔗" },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { href: "/dashboard/csv-upload", label: "CSV Upload", icon: "📤" },
+      { href: "/dashboard/overrides", label: "Overrides", icon: "⚙️" },
+    ],
+  },
 ];
 
 export default function DashboardLayout({
@@ -28,6 +54,17 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const initialOpen: Record<string, boolean> = {};
+  NAV_GROUPS.forEach((g) => {
+    const hasActive = g.items.some((item) => pathname.startsWith(item.href));
+    initialOpen[g.label] = hasActive;
+  });
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(initialOpen);
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -69,25 +106,50 @@ export default function DashboardLayout({
           </button>
         </div>
         <nav className={styles.nav}>
-          {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
+          {/* Overview - always visible at top */}
+          <a
+            href="/dashboard"
+            className={`${styles.navItem} ${pathname === "/dashboard" ? styles.navItemActive : ""}`}
+            onClick={(e) => { e.preventDefault(); router.push("/dashboard"); setSidebarOpen(false); }}
+          >
+            <span className={styles.navIcon}>📊</span>
+            <span>Overview</span>
+          </a>
+
+          {/* Collapsible groups */}
+          {NAV_GROUPS.map((group) => {
+            const isOpen = openGroups[group.label] ?? false;
+            const hasActive = group.items.some((item) =>
+              item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href)
+            );
             return (
-              <a
-                key={item.href}
-                href={item.href}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  router.push(item.href);
-                  setSidebarOpen(false);
-                }}
-              >
-                <span className={styles.navIcon}>{item.icon}</span>
-                <span>{item.label}</span>
-              </a>
+              <div key={group.label} className={styles.navGroup}>
+                <button
+                  className={`${styles.navGroupHeader} ${hasActive ? styles.navGroupHeaderActive : ""}`}
+                  onClick={() => toggleGroup(group.label)}
+                >
+                  <span>{group.label}</span>
+                  <span className={`${styles.navGroupChevron} ${isOpen ? styles.navGroupChevronOpen : ""}`}>›</span>
+                </button>
+                {isOpen && (
+                  <div className={styles.navGroupItems}>
+                    {group.items.map((item) => {
+                      const isActive = pathname.startsWith(item.href);
+                      return (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                          onClick={(e) => { e.preventDefault(); router.push(item.href); setSidebarOpen(false); }}
+                        >
+                          <span className={styles.navIcon}>{item.icon}</span>
+                          <span>{item.label}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
