@@ -15,6 +15,7 @@ export async function GET() {
       users,
       housekeeping,
       laundry,
+      medications,
     ] = await Promise.all([
       prisma.mealTemplate.count(),
       prisma.activityTemplate.count(),
@@ -26,6 +27,7 @@ export async function GET() {
       prisma.user.count(),
       prisma.housekeepingSchedule.count(),
       prisma.laundrySchedule.count(),
+      prisma.userMeds.count(),
     ]);
 
     return NextResponse.json({
@@ -39,6 +41,7 @@ export async function GET() {
       users,
       housekeeping,
       laundry,
+      medications,
     });
   } catch (error) {
     console.error("Stats error:", error);

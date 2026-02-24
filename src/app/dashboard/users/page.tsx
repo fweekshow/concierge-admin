@@ -32,6 +32,7 @@ export default function UsersPage() {
   const [filter, setFilter] = useState<string>("ALL");
   const [editUser, setEditUser] = useState<User | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState("");
+  const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -51,7 +52,7 @@ export default function UsersPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openEdit = (u: User) => { setEditUser(u); setSelectedRoleId(u.roleId); setError(null); };
+  const openEdit = (u: User) => { setEditUser(u); setSelectedRoleId(u.roleId); setEditName(u.name || ""); setError(null); };
 
   const handleSaveRole = async () => {
     if (!editUser) return;
@@ -60,13 +61,13 @@ export default function UsersPage() {
       const res = await fetch("/api/users", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: editUser.id, roleId: selectedRoleId }),
+        body: JSON.stringify({ userId: editUser.id, roleId: selectedRoleId, name: editName }),
       });
       if (!res.ok) throw new Error();
       setEditUser(null);
       fetchData();
     } catch {
-      setError("Failed to update role");
+      setError("Failed to update user");
     } finally {
       setSaving(false);
     }
@@ -122,23 +123,33 @@ export default function UsersPage() {
         <div className={s.modalOverlay} onClick={() => setEditUser(null)}>
           <div className={s.modal} onClick={(e) => e.stopPropagation()}>
             <div className={s.modalHeader}>
-              <h2>Change Role</h2>
+              <h2>Edit User</h2>
               <button className={s.modalClose} onClick={() => setEditUser(null)}>✕</button>
             </div>
             <div className={s.modalBody}>
-              <p style={{ color: "var(--text-secondary)", marginBottom: 16 }}>
-                User: <strong style={{ color: "var(--text-primary)" }}>{editUser.name || "Unnamed"}</strong>
-              </p>
+              <div className={s.formGroup}>
+                <label>Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Enter name"
+                />
+              </div>
               <div className={s.formGroup}>
                 <label>Role</label>
                 <select value={selectedRoleId} onChange={(e) => setSelectedRoleId(e.target.value)}>
                   {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
+              <div className={s.formGroup}>
+                <label>Wallet Address</label>
+                <input type="text" value={editUser.walletAddress || ""} disabled style={{ opacity: 0.5 }} />
+              </div>
             </div>
             <div className={s.modalFooter}>
-              <button className="btn btn-secondary" onClick={() => setEditUser(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveRole} disabled={saving}>
+              <button className={s.btnIcon} style={{ width: "auto", padding: "8px 16px" }} onClick={() => setEditUser(null)}>Cancel</button>
+              <button className={s.btnIcon} style={{ width: "auto", padding: "8px 16px", background: "var(--accent-primary)", color: "white", borderColor: "var(--accent-primary)" }} onClick={handleSaveRole} disabled={saving}>
                 {saving ? "Saving..." : "Save"}
               </button>
             </div>

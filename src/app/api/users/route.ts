@@ -27,11 +27,14 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const prisma = getPrisma();
-    const { userId, roleId } = await request.json();
-    if (!userId || !roleId) {
-      return NextResponse.json({ error: "Missing userId or roleId" }, { status: 400 });
+    const { userId, roleId, name } = await request.json();
+    if (!userId) {
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
-    await prisma.user.update({ where: { id: userId }, data: { roleId } });
+    const data: Record<string, any> = {};
+    if (roleId) data.roleId = roleId;
+    if (name !== undefined) data.name = name || null;
+    await prisma.user.update({ where: { id: userId }, data });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Users PUT error:", error);
