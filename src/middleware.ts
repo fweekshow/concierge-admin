@@ -1,24 +1,32 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { AUTH_COOKIE, AUTH_COOKIE_VALUE, AUTH_HEADER } from "@/lib/constants";
 
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
   // Skip auth for login page and API login endpoint
-  if (
-    request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/api/auth/login"
-  ) {
+  if (pathname === "/login" || pathname === "/api/auth/login") {
     return NextResponse.next();
   }
 
-  // Check for auth cookie
-  const authCookie = request.cookies.get("admin_auth");
-  
-  if (!authCookie || authCookie.value !== "authenticated") {
-    // Redirect to login
-    return NextResponse.redirect(new URL("/login", request.url));
+  // --- Auth: cookie OR secret header ---
+  const authCookie = request.cookies.get(AUTH_COOKIE);
+  const cookieOk = authCookie?.value === AUTH_COOKIE_VALUE;
+
+  const secretHeader = request.headers.get(AUTH_HEADER);
+  const headerOk = !!secretHeader && secretHeader === process.env.ADMIN_PASSWORD;
+
+  if (cookieOk || headerOk) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  // Unauthenticated: API routes get 401 JSON, pages get redirect
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return NextResponse.redirect(new URL("/login", request.url));
 }
 
 export const config = {
